@@ -1,9 +1,9 @@
 import React from 'react';
 import { ToastContainer, toast } from 'react-toastify';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
+// import { connect } from 'react-redux';
+// import { bindActionCreators } from 'redux';
 import 'react-toastify/dist/ReactToastify.css';
-import { addBabyName } from './../actions/AddAction';
+// import { addBabyName } from './../actions/AddAction';
 import './../App.css';
 
 class List extends React.Component {
