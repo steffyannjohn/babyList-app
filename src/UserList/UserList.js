@@ -1,21 +1,56 @@
 import React from 'react';
 import { ToastContainer, toast } from 'react-toastify';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 // import { connect } from 'react-redux';
 // import { bindActionCreators } from 'redux';
 import 'react-toastify/dist/ReactToastify.css';
 // import { addBabyName } from './../actions/AddAction';
 import './../App.css';
 
-class List extends React.Component {
+const grid = 8;
+  
+const getItemStyle = (isDragging, draggableStyle) => ({
+    // some basic styles to make the items look a bit nicer
+    userSelect: 'none',
+    padding: grid * 2,
+    margin: `0 0 ${grid}px 0`,
+  
+    // change background colour if dragging
+    background: isDragging ? 'lightgreen' : 'grey',
+  
+    // styles we need to apply on draggables
+    ...draggableStyle,
+  });
+
+  const getListStyle = isDraggingOver => ({
+    background: isDraggingOver ? 'lightblue' : 'lightgrey',
+    padding: grid,
+    width: 250,
+  });
+
+    class List extends React.Component {
+
     babyList = JSON.parse(localStorage.getItem('name')) ? JSON.parse(localStorage.getItem('name')) : [];
-    newArr = JSON.parse(localStorage.getItem('name')) ? JSON.parse(localStorage.getItem('name')) : [];
     chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@#*&';
     flag = false;
     class = '';
     state = {
-        reload: false
+        reload: false,
+        items:[]
     };
-    
+    constructor(props) {
+        super(props);
+        this.state = {
+          items: this.babyList,
+        };
+        this.onDragEnd = this.onDragEnd.bind(this);
+      };
+     reorder = (list, startIndex, endIndex) => {
+        const result = Array.from(list);
+        const [removed] = result.splice(startIndex, 1);
+        result.splice(endIndex, 0, removed);
+        return this.babyList = result;
+      };
     Submit = (event) => {
         event.preventDefault();
         let babyName = document.getElementById('names').value;
@@ -27,15 +62,12 @@ class List extends React.Component {
             list_id: this.listIdGenerator(this.chars),
             flag:false
         };
-        this.newArr.push(List);
-        var valueArr = this.newArr.map(function (item) { return item.name });
-        var isDuplicate = valueArr.some(function (item, idx) {
-            return valueArr.indexOf(item) !== idx
-        });
+        var valueArr = this.babyList.map(function (item) { return item.name });
+      
+        var isDuplicate = valueArr.includes(babyName);
         if (isDuplicate === true) {
             toast.error("Name already exists", { position: toast.POSITION.TOP_RIGHT });
-            this.newArr = Array.from(new Set(this.babyList));
-            valueArr = Array.from(new Set(valueArr));
+           
         }
         else {
             this.babyList.push(List);
@@ -50,11 +82,7 @@ class List extends React.Component {
     }
         document.getElementById('names').value = '';
         isDuplicate = false;
-        // console.log("isDuplicate", isDuplicate);
-        // console.log("babyList", this.babyList);
-        // console.log("newArr", this.newArr);
-       
-    };
+         };
     // ** list Id Generation via Javascript code***//
     listIdGenerator = (chars) => {
         let id = '';
@@ -114,7 +142,24 @@ class List extends React.Component {
           }
           console.log("flagValue",this.babyList)
          };
+         
         
+          onDragEnd(result) {
+            // dropped outside the list
+            if (!result.destination) {
+              return;
+            }
+        
+            const items = this.reorder(
+              this.state.items,
+              result.source.index,
+              result.destination.index
+            );
+        
+            this.setState({
+              items,
+            });
+          }   
      render() {
         if (!this.state.reload) {
             return (
@@ -133,43 +178,40 @@ class List extends React.Component {
                     <div>
                         <br />
                         <br />
-                        <button className="button" type="submit" onClick={(e)=>{this.sortName()}}>Sort</button>
-                        {/* {
-                            this.babyList.length > 0 && <p>List:</p> &&
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>SL No</th>
-                                        <th>Name</th>
-                                    </tr>
-                                </thead>
-                                {
-                                    this.babyList.map((name, _index) => {
-                                        return (
-                                            <tbody key={_index}>
-                                                <tr>
-                                                    <td>{_index + 1}</td>
-                                                    <td>{name.name}</td>
-                                                </tr>
-                                            </tbody>
-                                        )
-                                    })
-                                }
-                            </table>
-                        } */}
+                      {this.babyList.length>0 &&  <button className="button" type="submit" onClick={(e)=>{this.sortName()}}>Sort</button>}
+                        
+                     {this.babyList.length>0  && <DragDropContext onDragEnd={this.onDragEnd}>
+        <Droppable droppableId="droppable">
+          {(provided, snapshot) => (
+            <div
+              ref={provided.innerRef}
+              style={getListStyle(snapshot.isDraggingOver)}
+            >
+              {this.babyList.map((item, index) => (
+                <Draggable key={item.list_id} draggableId={item.list_id} index={index}>
+                  {(provided, snapshot) => (
+                    <div
 
-                         {
-                                    this.babyList.map((name, _index) => {
-                                        return (
-                                            <div key = {_index}>
-                                                <input type="checkbox" id={name.list_id}  name={name.name} value = {name.name} onChange = {(e)=>{this.Change(e)}}/>
-                                                <span  >{name.name}</span>
-                                               
-                                            </div>
-                                           
-                                        )
-                                    })
-                                }
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      style={getItemStyle(
+                        snapshot.isDragging,
+                        provided.draggableProps.style
+                      )}
+                    >
+                    <input type="checkbox" id={item.list_id}  name={item.name} value = {item.name} onChange = {(e)=>{this.Change(e)}}/>
+                                                <span  >{item.name}</span>
+                      {/* {item.name} */}
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>}
                     </div>
 
                 </div>
