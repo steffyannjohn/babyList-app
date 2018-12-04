@@ -24,7 +24,8 @@ class List extends React.Component {
         if(babyName.match(babyNameRegEx)){
         let List = {
             name: babyName.trim(),
-            list_id: this.listIdGenerator(this.chars)
+            list_id: this.listIdGenerator(this.chars),
+            flag:false
         };
         this.newArr.push(List);
         var valueArr = this.newArr.map(function (item) { return item.name });
@@ -49,7 +50,11 @@ class List extends React.Component {
     }
         document.getElementById('names').value = '';
         isDuplicate = false;
-       };
+        // console.log("isDuplicate", isDuplicate);
+        // console.log("babyList", this.babyList);
+        // console.log("newArr", this.newArr);
+       
+    };
     // ** list Id Generation via Javascript code***//
     listIdGenerator = (chars) => {
         let id = '';
@@ -58,6 +63,58 @@ class List extends React.Component {
         }
         return id;
     };
+    // ***sort logic based on name****//
+     sortName = () => {
+        this.flag = this.flag === false?(this.babyList.sort(this.ascendingSort), this.flag = true): (this.babyList.sort(this.descendingSort),
+            this.flag = false)
+         this.setState({
+            reload: false
+        });
+     };
+     ascendingSort = (a, b) => {
+        const nameA = a.name.toUpperCase();
+        const nameB = b.name.toUpperCase();
+         let comparison = 0;
+        if (nameA > nameB) {
+          comparison = 1;
+        } else if (nameA < nameB) {
+          comparison = -1;
+        }
+        return comparison;
+      };
+      descendingSort = (a,b) => {
+        const nameA = a.name.toUpperCase();
+        const nameB = b.name.toUpperCase();
+         let comparison = 0;
+        if (nameB > nameA) {
+          comparison = 1;
+        } else if (nameB < nameA) {
+          comparison = -1;
+        };
+        
+        return comparison;
+      };
+      Change = (e) => {
+        console.log("_iddd",e.target.id);
+        // let id = e.target.id;
+        let element = e.target;
+        element.nextSibling.classList.toggle('strikeOut');
+        console.log("_list_id",element.id);
+        console.log("name",element.name);
+        for (let i in this.babyList) {
+            if (this.babyList[i].list_id === element.id) {
+                if(this.babyList[i].flag === true){
+                    this.babyList[i].flag = false
+                }
+                else{
+                    this.babyList[i].flag = true
+                }
+               break; 
+            }
+          }
+          console.log("flagValue",this.babyList)
+         };
+        
      render() {
         if (!this.state.reload) {
             return (
@@ -76,7 +133,8 @@ class List extends React.Component {
                     <div>
                         <br />
                         <br />
-                        {
+                        <button className="button" type="submit" onClick={(e)=>{this.sortName()}}>Sort</button>
+                        {/* {
                             this.babyList.length > 0 && <p>List:</p> &&
                             <table>
                                 <thead>
@@ -98,9 +156,23 @@ class List extends React.Component {
                                     })
                                 }
                             </table>
-                        }
+                        } */}
+
+                         {
+                                    this.babyList.map((name, _index) => {
+                                        return (
+                                            <div key = {_index}>
+                                                <input type="checkbox" id={name.list_id}  name={name.name} value = {name.name} onChange = {(e)=>{this.Change(e)}}/>
+                                                <span  >{name.name}</span>
+                                               
+                                            </div>
+                                           
+                                        )
+                                    })
+                                }
                     </div>
-                      </div>
+
+                </div>
 
             )
         }
@@ -110,7 +182,20 @@ class List extends React.Component {
     }
 };
 
-export default List;
+export default List
+
+// function matchDispatchToProps(dispatch) {
+//     return bindActionCreators({
+//         addBabyName
+//     }, dispatch);
+// };
+
+// function mapStateToProps(state) {
+//     return {
+//         ...state
+//     }
+// };
+// export default connect(mapStateToProps, matchDispatchToProps)(List);
 
 
 
