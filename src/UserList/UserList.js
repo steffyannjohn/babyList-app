@@ -8,10 +8,8 @@ import './../App.css';
 
 class List extends React.Component {
     babyList = JSON.parse(localStorage.getItem('name')) ? JSON.parse(localStorage.getItem('name')) : [];
-    newArr = JSON.parse(localStorage.getItem('name')) ? JSON.parse(localStorage.getItem('name')) : [];
     chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@#*&';
     flag = false;
-    class = '';
     state = {
         reload: false
     };
@@ -22,22 +20,17 @@ class List extends React.Component {
         // ***For text validation ***//
         let babyNameRegEx = /^[a-zA-Z\s{1,''}]*$/;
         if(babyName.match(babyNameRegEx)){
-        let List = {
+        let list = {
             name: babyName.trim(),
             list_id: this.listIdGenerator(this.chars)
         };
-        this.newArr.push(List);
-        var valueArr = this.newArr.map(function (item) { return item.name });
-        var isDuplicate = valueArr.some(function (item, idx) {
-            return valueArr.indexOf(item) !== idx
-        });
+        var valueArr = this.babyList.map(function (item) { return item.name });
+        var isDuplicate = valueArr.includes(babyName)
         if (isDuplicate === true) {
             toast.error("Name already exists", { position: toast.POSITION.TOP_RIGHT });
-            this.newArr = Array.from(new Set(this.babyList));
-            valueArr = Array.from(new Set(valueArr));
         }
         else {
-            this.babyList.push(List);
+            this.babyList.push(list);
         };
         localStorage.setItem('name', JSON.stringify(this.babyList));
         this.setState({
@@ -46,14 +39,15 @@ class List extends React.Component {
     }
     else{
         toast.error("Name must be in text", { position: toast.POSITION.TOP_RIGHT });
-    }
+    };
         document.getElementById('names').value = '';
         isDuplicate = false;
        };
     // ** list Id Generation via Javascript code***//
     listIdGenerator = (chars) => {
         let id = '';
-        for (let i = 0; i<12; i++) {
+        const length = 12
+        for (let i = 0; i<length; i++) {
             id = id +  chars[Math.round(Math.random() * (chars.length - 1))];
         }
         return id;
