@@ -74,7 +74,7 @@ const getItemStyle = (isDragging, draggableStyle) => ({
     }
     else{
         toast.error("Name must be in text", { position: toast.POSITION.TOP_RIGHT });
-    }
+    };
         document.getElementById('names').value = '';
         isDuplicate = false;
          };
