@@ -28,20 +28,16 @@ const getItemStyle = (isDragging, draggableStyle) => ({
     width: 250,
   });
 
-    class List extends React.Component {
-
-    babyList = JSON.parse(localStorage.getItem('name')) ? JSON.parse(localStorage.getItem('name')) : [];
+  class List extends React.Component {
+   babyList = JSON.parse(localStorage.getItem('name')) ? JSON.parse(localStorage.getItem('name')) : [];
     chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@#*&';
     flag = false;
-    class = '';
-    state = {
-        reload: false,
-        items:[]
-    };
-    constructor(props) {
+  
+      constructor(props) {
         super(props);
         this.state = {
           items: this.babyList,
+          reload: false
         };
         this.onDragEnd = this.onDragEnd.bind(this);
       };
@@ -49,6 +45,7 @@ const getItemStyle = (isDragging, draggableStyle) => ({
         const result = Array.from(list);
         const [removed] = result.splice(startIndex, 1);
         result.splice(endIndex, 0, removed);
+        console.log("result",result)
         return this.babyList = result;
       };
     Submit = (event) => {
@@ -57,20 +54,18 @@ const getItemStyle = (isDragging, draggableStyle) => ({
         // ***For text validation ***//
         let babyNameRegEx = /^[a-zA-Z\s{1,''}]*$/;
         if(babyName.match(babyNameRegEx)){
-        let List = {
+        let listObj = {
             name: babyName.trim(),
             list_id: this.listIdGenerator(this.chars),
             flag:false
         };
         var valueArr = this.babyList.map(function (item) { return item.name });
-      
         var isDuplicate = valueArr.includes(babyName);
         if (isDuplicate === true) {
             toast.error("Name already exists", { position: toast.POSITION.TOP_RIGHT });
-           
-        }
+            }
         else {
-            this.babyList.push(List);
+            this.babyList.push(listObj);
         };
         localStorage.setItem('name', JSON.stringify(this.babyList));
         this.setState({
@@ -93,43 +88,18 @@ const getItemStyle = (isDragging, draggableStyle) => ({
     };
     // ***sort logic based on name****//
      sortName = () => {
-        this.flag = this.flag === false?(this.babyList.sort(this.ascendingSort), this.flag = true): (this.babyList.sort(this.descendingSort),
-            this.flag = false)
+        let toggleSort = this.babyList.sort(this.sortToggle);
+        this.flag = this.flag === false?(toggleSort, this.flag = true): (toggleSort,
+            this.flag = false);
+            console.log("_babyListSort",this.babyList)
          this.setState({
             reload: false
         });
      };
-     ascendingSort = (a, b) => {
-        const nameA = a.name.toUpperCase();
-        const nameB = b.name.toUpperCase();
-         let comparison = 0;
-        if (nameA > nameB) {
-          comparison = 1;
-        } else if (nameA < nameB) {
-          comparison = -1;
-        }
-        return comparison;
-      };
-      descendingSort = (a,b) => {
-        const nameA = a.name.toUpperCase();
-        const nameB = b.name.toUpperCase();
-         let comparison = 0;
-        if (nameB > nameA) {
-          comparison = 1;
-        } else if (nameB < nameA) {
-          comparison = -1;
-        };
-        
-        return comparison;
-      };
       Change = (e) => {
-        console.log("_iddd",e.target.id);
-        // let id = e.target.id;
         let element = e.target;
         element.nextSibling.classList.toggle('strikeOut');
-        console.log("_list_id",element.id);
-        console.log("name",element.name);
-        for (let i in this.babyList) {
+           for (let i in this.babyList) {
             if (this.babyList[i].list_id === element.id) {
                 if(this.babyList[i].flag === true){
                     this.babyList[i].flag = false
@@ -140,31 +110,48 @@ const getItemStyle = (isDragging, draggableStyle) => ({
                break; 
             }
           }
-          console.log("flagValue",this.babyList)
          };
-         
-        
-          onDragEnd(result) {
+         onDragEnd(result) {
             // dropped outside the list
             if (!result.destination) {
               return;
             }
-        
             const items = this.reorder(
               this.state.items,
               result.source.index,
               result.destination.index
             );
-        
             this.setState({
               items,
             });
-          }   
+          };
+        sortToggle = (a,b) => {
+            const nameA = a.name.toUpperCase();
+            const nameB = b.name.toUpperCase();
+             let comparison = 0;
+             if(this.flag === false){
+              if (nameA > nameB) {
+                comparison = 1;
+              } else if (nameA < nameB) {
+                comparison = -1;
+              };
+              return comparison;
+              }
+             if(this.flag === true){
+              if (nameB > nameA) {
+                comparison = 1;
+              } else if (nameB < nameA) {
+                comparison = -1;
+              };
+              return comparison;
+             };
+             }
      render() {
         if (!this.state.reload) {
             return (
                 <div>
                     <ToastContainer />
+                    <br/>
                     <form className="form" onSubmit={this.Submit}>
                         <div>
                             <label className="label">Names:</label>
@@ -179,14 +166,17 @@ const getItemStyle = (isDragging, draggableStyle) => ({
                         <br />
                         <br />
                       {this.babyList.length>0 &&  <button className="button" type="submit" onClick={(e)=>{this.sortName()}}>Sort</button>}
-                        
-                     {this.babyList.length>0  && <DragDropContext onDragEnd={this.onDragEnd}>
-        <Droppable droppableId="droppable">
+                      <br/>
+                      {this.babyList.length>0  &&
+                      <div>
+                      <div className="centered">
+        <DragDropContext   onDragEnd={this.onDragEnd}>
+        <Droppable  droppableId="droppable">
           {(provided, snapshot) => (
             <div
               ref={provided.innerRef}
               style={getListStyle(snapshot.isDraggingOver)}
-            >
+            >{console.log("provided",provided)}
               {this.babyList.map((item, index) => (
                 <Draggable key={item.list_id} draggableId={item.list_id} index={index}>
                   {(provided, snapshot) => (
@@ -211,12 +201,12 @@ const getItemStyle = (isDragging, draggableStyle) => ({
             </div>
           )}
         </Droppable>
-      </DragDropContext>}
+      </DragDropContext>
+      </div>
+      </div>}
                     </div>
-
-                </div>
-
-            )
+            </div>
+         )
         }
         else {
             return (<div></div>)
