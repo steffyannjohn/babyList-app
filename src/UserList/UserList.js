@@ -10,7 +10,7 @@ import './../App.css';
 const grid = 8;
   
 const getItemStyle = (isDragging, draggableStyle) => ({
-    // some basic styles to make the items look a bit nicer
+    // some basic styles for drag and drop
     userSelect: 'none',
     padding: grid * 2,
     margin: `0 0 ${grid}px 0`,
@@ -18,7 +18,7 @@ const getItemStyle = (isDragging, draggableStyle) => ({
     // change background colour if dragging
     background: isDragging ? 'lightgreen' : 'grey',
   
-    // styles we need to apply on draggables
+    // styles to apply on draggables
     ...draggableStyle,
   });
 
@@ -32,7 +32,7 @@ const getItemStyle = (isDragging, draggableStyle) => ({
    babyList = JSON.parse(localStorage.getItem('name')) ? JSON.parse(localStorage.getItem('name')) : [];
     chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@#*&';
     flag = false;
-  
+    strLength = 12;
       constructor(props) {
         super(props);
         this.state = {
@@ -45,7 +45,6 @@ const getItemStyle = (isDragging, draggableStyle) => ({
         const result = Array.from(list);
         const [removed] = result.splice(startIndex, 1);
         result.splice(endIndex, 0, removed);
-        console.log("result",result)
         return this.babyList = result;
       };
     Submit = (event) => {
@@ -54,9 +53,10 @@ const getItemStyle = (isDragging, draggableStyle) => ({
         // ***For text validation ***//
         let babyNameRegEx = /^[a-zA-Z\s{1,''}]*$/;
         if(babyName.match(babyNameRegEx)){
+          // console.log("whitespace", babyName.replace(/\s+$/, '').trim())
         let listObj = {
             name: babyName.trim(),
-            list_id: this.listIdGenerator(this.chars),
+            list_id: this.listIdGenerator(this.chars,this.strLength),
             flag:false
         };
         var valueArr = this.babyList.map(function (item) { return item.name });
@@ -79,9 +79,9 @@ const getItemStyle = (isDragging, draggableStyle) => ({
         isDuplicate = false;
          };
     // ** list Id Generation via Javascript code***//
-    listIdGenerator = (chars) => {
+    listIdGenerator = (chars,length) => {
         let id = '';
-        for (let i = 0; i<12; i++) {
+        for (let i = 0; i<length; i++) {
             id = id +  chars[Math.round(Math.random() * (chars.length - 1))];
         }
         return id;
@@ -91,12 +91,11 @@ const getItemStyle = (isDragging, draggableStyle) => ({
         let toggleSort = this.babyList.sort(this.sortToggle);
         this.flag = this.flag === false?(toggleSort, this.flag = true): (toggleSort,
             this.flag = false);
-            console.log("_babyListSort",this.babyList)
          this.setState({
             reload: false
         });
      };
-      Change = (e) => {
+     changeFlag = (e) => {
         let element = e.target;
         element.nextSibling.classList.toggle('strikeOut');
            for (let i in this.babyList) {
@@ -109,7 +108,11 @@ const getItemStyle = (isDragging, draggableStyle) => ({
                 }
                break; 
             }
-          }
+          };
+          localStorage.setItem('name', JSON.stringify(this.babyList));
+          this.setState({
+            reload: false
+        });
          };
          onDragEnd(result) {
             // dropped outside the list
@@ -137,14 +140,14 @@ const getItemStyle = (isDragging, draggableStyle) => ({
               };
               return comparison;
               }
-             if(this.flag === true){
+             else{
               if (nameB > nameA) {
                 comparison = 1;
               } else if (nameB < nameA) {
                 comparison = -1;
               };
               return comparison;
-             };
+             }
              }
      render() {
         if (!this.state.reload) {
@@ -176,7 +179,7 @@ const getItemStyle = (isDragging, draggableStyle) => ({
             <div
               ref={provided.innerRef}
               style={getListStyle(snapshot.isDraggingOver)}
-            >{console.log("provided",provided)}
+            >
               {this.babyList.map((item, index) => (
                 <Draggable key={item.list_id} draggableId={item.list_id} index={index}>
                   {(provided, snapshot) => (
@@ -190,9 +193,11 @@ const getItemStyle = (isDragging, draggableStyle) => ({
                         provided.draggableProps.style
                       )}
                     >
-                    <input type="checkbox" id={item.list_id}  name={item.name} value = {item.name} onChange = {(e)=>{this.Change(e)}}/>
-                                                <span  >{item.name}</span>
-                      {/* {item.name} */}
+                    <input type="checkbox"  id={item.list_id}  name={item.name} value = {item.name} onChange = {(e)=>{this.changeFlag(e)}}
+                    //  checked={isChecked(this.babyList,item.name,item.flag)}
+                     checked = {item.flag === true ?true:false}
+                     />
+                                                <span className= {item.flag===true?'strikeOut':''}>{item.name}</span>
                     </div>
                   )}
                 </Draggable>
