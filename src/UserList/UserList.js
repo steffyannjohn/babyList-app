@@ -1,10 +1,7 @@
 import React from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-// import { connect } from 'react-redux';
-// import { bindActionCreators } from 'redux';
 import 'react-toastify/dist/ReactToastify.css';
-// import { addBabyName } from './../actions/AddAction';
 import './../App.css';
 
 const grid = 8;
@@ -95,20 +92,14 @@ const getItemStyle = (isDragging, draggableStyle) => ({
             reload: false
         });
      };
-     changeFlag = (e) => {
+    //  Edit flag for maintaining check vs uncheck across session
+      onToggleCheck = (e) => {
         let element = e.target;
         element.nextSibling.classList.toggle('strikeOut');
            for (let i in this.babyList) {
-            if (this.babyList[i].list_id === element.id) {
-                if(this.babyList[i].flag === true){
-                    this.babyList[i].flag = false
-                }
-                else{
-                    this.babyList[i].flag = true
-                }
-               break; 
-            }
-          };
+           if (this.babyList[i].list_id === element.id) {
+              this.babyList[i].flag =this.babyList[i].flag === true ?false:true
+              } };
           localStorage.setItem('name', JSON.stringify(this.babyList));
           this.setState({
             reload: false
@@ -131,23 +122,10 @@ const getItemStyle = (isDragging, draggableStyle) => ({
         sortToggle = (a,b) => {
             const nameA = a.name.toUpperCase();
             const nameB = b.name.toUpperCase();
-             let comparison = 0;
-             if(this.flag === false){
-              if (nameA > nameB) {
-                comparison = 1;
-              } else if (nameA < nameB) {
-                comparison = -1;
-              };
-              return comparison;
-              }
-             else{
-              if (nameB > nameA) {
-                comparison = 1;
-              } else if (nameB < nameA) {
-                comparison = -1;
-              };
-              return comparison;
-             }
+            if(this.flag === false){
+              return   (nameA>nameB ?1:(nameA<nameB?-1:0))
+            }
+             return    (nameB>nameA ?1:(nameB<nameA?-1:0))
              }
      render() {
         if (!this.state.reload) {
@@ -155,16 +133,11 @@ const getItemStyle = (isDragging, draggableStyle) => ({
                 <div>
                     <ToastContainer />
                     <br/>
-                    <form className="form" onSubmit={this.Submit}>
-                        <div>
-                            <label className="label">Names:</label>
-                            <input type="text" id="names" required />
-                        </div><br />
-
-                        <div>
-                            <button className="button" type="submit">Add</button>
-                        </div>
-                    </form>
+                    <div className="form">
+                    <form className="pure-form"onSubmit={this.Submit}>
+                     <input type="text" className="pure-input-rounded" placeholder="Enter baby Name"id="names" required/>
+                    <button type="submit" className="pure-button">Add</button>
+                    </form></div>
                     <div>
                         <br />
                         <br />
@@ -193,11 +166,10 @@ const getItemStyle = (isDragging, draggableStyle) => ({
                         provided.draggableProps.style
                       )}
                     >
-                    <input type="checkbox"  id={item.list_id}  name={item.name} value = {item.name} onChange = {(e)=>{this.changeFlag(e)}}
-                    //  checked={isChecked(this.babyList,item.name,item.flag)}
+                    <input type="checkbox" id={item.list_id}  name={item.name} value = {item.name} onChange = {(e)=>{this.onToggleCheck(e)}}
                      checked = {item.flag === true ?true:false}
                      />
-                                                <span className= {item.flag===true?'strikeOut':''}>{item.name}</span>
+                     <span className= {item.flag===true?'strikeOut':''}>{item.name}</span>
                     </div>
                   )}
                 </Draggable>
@@ -220,19 +192,4 @@ const getItemStyle = (isDragging, draggableStyle) => ({
 };
 
 export default List
-
-// function matchDispatchToProps(dispatch) {
-//     return bindActionCreators({
-//         addBabyName
-//     }, dispatch);
-// };
-
-// function mapStateToProps(state) {
-//     return {
-//         ...state
-//     }
-// };
-// export default connect(mapStateToProps, matchDispatchToProps)(List);
-
-
 
