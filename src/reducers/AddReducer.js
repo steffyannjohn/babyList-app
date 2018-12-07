@@ -6,7 +6,8 @@ export default (state = [], action) => {
             return {
                 ...state,
                 name: action.name,
-                list_id: action.list_id
+                list_id: action.list_id,
+                flag: action.flag
             };
         default:
             return {

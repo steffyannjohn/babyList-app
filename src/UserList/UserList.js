@@ -1,6 +1,9 @@
 import React from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { addBabyName } from './../actions/AddAction';
 import 'react-toastify/dist/ReactToastify.css';
 import './../App.css';
 
@@ -26,23 +29,25 @@ const getItemStyle = (isDragging, draggableStyle) => ({
   });
 
   class List extends React.Component {
-   babyList = JSON.parse(localStorage.getItem('name')) ? JSON.parse(localStorage.getItem('name')) : [];
+  //  babyList = JSON.parse(localStorage.getItem('name')) ? JSON.parse(localStorage.getItem('name')) : [];
+   babyList = []
     chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@#*&';
     flag = false;
     strLength = 12;
+    babyNameArr = [];
       constructor(props) {
         super(props);
         this.state = {
-          items: this.babyList,
+          items: this.babyNameArr?this.babyNameArr:[],
           reload: false
         };
-        this.onDragEnd = this.onDragEnd.bind(this);
+         this.onDragEnd = this.onDragEnd.bind(this);
       };
      reorder = (list, startIndex, endIndex) => {
         const result = Array.from(list);
         const [removed] = result.splice(startIndex, 1);
         result.splice(endIndex, 0, removed);
-        return this.babyList = result;
+        return this.babyNameArr = result;
       };
     Submit = (event) => {
         event.preventDefault();
@@ -64,7 +69,8 @@ const getItemStyle = (isDragging, draggableStyle) => ({
         else {
             this.babyList.push(listObj);
         };
-        localStorage.setItem('name', JSON.stringify(this.babyList));
+        // localStorage.setItem('name', JSON.stringify(this.babyList));
+        this.babyNameArr =this.props.addBabyName(this.babyList).data;
         this.setState({
             reload: false
         });
@@ -85,7 +91,7 @@ const getItemStyle = (isDragging, draggableStyle) => ({
     };
     // ***sort logic based on name****//
      sortName = () => {
-        let toggleSort = this.babyList.sort(this.sortToggle);
+        let toggleSort = this.babyNameArr.sort(this.sortToggle);
         this.flag = this.flag === false?(toggleSort, this.flag = true): (toggleSort,
             this.flag = false);
          this.setState({
@@ -96,11 +102,10 @@ const getItemStyle = (isDragging, draggableStyle) => ({
       onToggleCheck = (e) => {
         let element = e.target;
         element.nextSibling.classList.toggle('strikeOut');
-           for (let i in this.babyList) {
-           if (this.babyList[i].list_id === element.id) {
-              this.babyList[i].flag =this.babyList[i].flag === true ?false:true
+           for (let i in this.babyNameArr) {
+           if (this.babyNameArr[i].list_id === element.id) {
+              this.babyNameArr[i].flag =this.babyNameArr[i].flag === true ?false:true
               } };
-          localStorage.setItem('name', JSON.stringify(this.babyList));
           this.setState({
             reload: false
         });
@@ -111,7 +116,7 @@ const getItemStyle = (isDragging, draggableStyle) => ({
               return;
             }
             const items = this.reorder(
-              this.state.items,
+              this.babyNameArr,
               result.source.index,
               result.destination.index
             );
@@ -141,11 +146,11 @@ const getItemStyle = (isDragging, draggableStyle) => ({
                     <div>
                         <br />
                         <br />
-                      {this.babyList.length>0 &&  <button className="button" type="submit" onClick={(e)=>{this.sortName()}}>Sort</button>}
+                      {this.babyNameArr.length>0 && <button className="button" type="submit" onClick={(e)=>{this.sortName()}}>Sort</button>}
                       <br/>
-                      {this.babyList.length>0  &&
-                      <div>
+                      {this.babyNameArr.length>0 &&
                       <div className="centered">
+                      <div  >
         <DragDropContext   onDragEnd={this.onDragEnd}>
         <Droppable  droppableId="droppable">
           {(provided, snapshot) => (
@@ -153,7 +158,7 @@ const getItemStyle = (isDragging, draggableStyle) => ({
               ref={provided.innerRef}
               style={getListStyle(snapshot.isDraggingOver)}
             >
-              {this.babyList.map((item, index) => (
+              {this.babyNameArr.length>0 && this.babyNameArr.map((item, index) => (
                 <Draggable key={item.list_id} draggableId={item.list_id} index={index}>
                   {(provided, snapshot) => (
                     <div
@@ -191,5 +196,15 @@ const getItemStyle = (isDragging, draggableStyle) => ({
     }
 };
 
-export default List
+function matchDispatchToProps(dispatch) {
+    return bindActionCreators({
+        addBabyName
+    }, dispatch);
+};
 
+function mapStateToProps(state) {
+    return {
+        ...state
+    }
+};
+export default connect(mapStateToProps, matchDispatchToProps)(List);
